@@ -1,0 +1,11 @@
+========================================
+ALBERT-base-v2 | Seed 42 (task 0)
+Node: gpua058.delta.ncsa.illinois.edu | GPU: NVIDIA A100-SXM4-40GB
+Start: Tue May  5 13:51:43 CDT 2026
+========================================
+Mode: full | Device: cpu
+Train: 23,001 | Test: 23,245
+
+=======================================================
+Full-data training | Seed 42
+=======================================================

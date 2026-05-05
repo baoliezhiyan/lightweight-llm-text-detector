@@ -1,0 +1,13 @@
+========================================
+ELECTRA + AWP | Seed 42 (task 0)
+Node: gpua087.delta.ncsa.illinois.edu | GPU: NVIDIA A100-SXM4-40GB
+Start: Tue May  5 13:52:42 CDT 2026
+========================================
+Mode: full | Device: cpu
+Train: 23,001 | Test: 23,245
+Positive: 8,589 | Negative: 14,412
+
+=======================================================
+Full-data training | Seed 42
+=======================================================
+  Epoch 1      : tr_loss=0.1470 tr_auc=0.9898
