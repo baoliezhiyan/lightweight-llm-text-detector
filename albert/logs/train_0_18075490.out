@@ -1,0 +1,12 @@
+========================================
+ALBERT-base-v2 | Seed 42 (task 0)
+Node: gpub028.delta.ncsa.illinois.edu | GPU: NVIDIA A40
+Start: Tue May  5 20:44:15 CDT 2026
+========================================
+Mode: full | Device: cpu | FP16: False
+Train: 23,001 | Test: 23,245
+
+=======================================================
+Full-data training | Seed 42
+=======================================================
+  Epoch 1: tr_loss=0.1251 tr_auc=0.9889

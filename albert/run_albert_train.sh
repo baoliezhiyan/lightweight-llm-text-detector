@@ -5,7 +5,7 @@
 #SBATCH --gpus=1
 #SBATCH --mem=64g
 #SBATCH --cpus-per-task=16
-#SBATCH --time=02:00:00
+#SBATCH --time=06:00:00
 #SBATCH --job-name=albert_train_364
 #SBATCH --array=0-2
 #SBATCH --output=/u/yliu110/364/albert/logs/train_%a_%j.out
