@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModel, get_cosine_schedule_with_warmup
 from tqdm import tqdm
 
-# ─────────────── Config(和 model_1.py 一致)───────────────
+# config
 MODEL_NAME   = "google/electra-small-discriminator"
 MAX_LEN      = 512
 HEAD_TOKENS  = 256
@@ -20,7 +20,7 @@ WEIGHT_DECAY = 0.01
 WARMUP_RATIO = 0.1
 DEVICE       = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-SEEDS = [42, 1337, 2024]   # 训 3 个 seed 的 full-data 模型
+SEEDS = [42, 1337, 2024]
 
 os.makedirs("outputs/preds", exist_ok=True)
 
@@ -34,7 +34,6 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
 
 
-# ─────────────── Dataset(直接复用 model_1.py 的 EssayDataset)───────────────
 class EssayDataset(Dataset):
     def __init__(self, texts, labels, tokenizer):
         self.texts = texts
@@ -49,15 +48,18 @@ class EssayDataset(Dataset):
         input_ids = tokens["input_ids"]
         attention_mask = tokens["attention_mask"]
 
+        # keep head and tail if too long
         if len(input_ids) > HEAD_TOKENS + TAIL_TOKENS:
             input_ids = input_ids[:HEAD_TOKENS] + input_ids[-TAIL_TOKENS:]
             attention_mask = attention_mask[:HEAD_TOKENS] + attention_mask[-TAIL_TOKENS:]
 
+        # add CLS and SEP
         cls_id = self.tokenizer.cls_token_id
         sep_id = self.tokenizer.sep_token_id
         input_ids = [cls_id] + input_ids + [sep_id]
         attention_mask = [1] + attention_mask + [1]
 
+        # pad
         pad_len = MAX_LEN - len(input_ids)
         if pad_len > 0:
             input_ids += [self.tokenizer.pad_token_id] * pad_len
@@ -75,7 +77,6 @@ class EssayDataset(Dataset):
         return encoded
 
 
-# ─────────────── Model(直接复用 model_1.py 的 ElectraClassifier)───────────────
 class ElectraClassifier(nn.Module):
     def __init__(self, model_name=MODEL_NAME, dropout=0.3):
         super().__init__()
@@ -94,7 +95,6 @@ class ElectraClassifier(nn.Module):
         return self.classifier(cls_hidden).squeeze(-1)
 
 
-# ─────────────── train_epoch / predict(简化版)───────────────
 def train_epoch(model, loader, optimizer, scheduler, criterion):
     model.train()
     total_loss = 0
@@ -129,7 +129,6 @@ def predict(model, loader):
     return np.array(all_probs)
 
 
-# ─────────────── Main(每个 seed 训一次,平均)───────────────
 def main():
     print("Loading data...")
     train = pd.read_csv("train.csv")
@@ -148,7 +147,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE * 2,
                              shuffle=False, num_workers=0, pin_memory=True)
 
-    # 累加器:平均所有 seed 的 test 预测
+    # average predictions across seeds
     test_preds_avg = np.zeros(len(test_texts))
 
     for seed in SEEDS:
@@ -170,7 +169,6 @@ def main():
             train_loss = train_epoch(model, train_loader, optimizer, scheduler, criterion)
             print(f"  Seed {seed} Epoch {epoch}: train_loss={train_loss:.4f}")
 
-        # 预测 test
         print(f"  Predicting test for seed {seed}...")
         test_preds = predict(model, test_loader)
         print(f"    preds: min={test_preds.min():.4f}, max={test_preds.max():.4f}, mean={test_preds.mean():.4f}")
@@ -180,7 +178,6 @@ def main():
         del model
         torch.cuda.empty_cache()
 
-    # 保存平均后的 test 预测
     np.savez("outputs/preds/electra_full.npz", preds=test_preds_avg, ids=np.array(test_ids))
     print(f"\nSaved averaged full-data predictions to outputs/preds/electra_full.npz")
     print(f"Final preds: min={test_preds_avg.min():.4f}, max={test_preds_avg.max():.4f}, mean={test_preds_avg.mean():.4f}")
